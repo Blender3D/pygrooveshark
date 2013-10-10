@@ -133,7 +133,7 @@ class GroovesharkClient(object):
     def downloadSongs(self, songs):
         for song in songs:
             filename = windows_filename(song['AlbumName'] + ' - ' + song['SongName'] + '.mp3')
-            path = os.path.join(os.path.expanduser('~/Music/Grooveshark'), filename)
+            path = os.path.join(sys.argv[2], filename)
 
             if os.path.exists(path):
                 print 'Skipping', repr(filename)
