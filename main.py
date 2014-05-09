@@ -1,22 +1,23 @@
-import os
-import sys
+from __future__ import print_function, unicode_literals
 
-import itertools
-import requests
-import hashlib
+import os
+import re
+import sys
+import time
+import uuid
+import json
 import random
 import string
-import json
-import uuid
-import time
-import re
+import hashlib
+import requests
+import itertools
 
 USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25'
 BASE_URL = 'https://html5.grooveshark.com'
 API_URL = BASE_URL + '/more.php?'
 
 def random_hex():
-    return ''.join(random.choice(string.hexdigits) for n in xrange(6))
+    return ''.join(random.choice(string.hexdigits) for n in range(6))
 
 def windows_filename(filename):
     return re.sub(r'[/\\:*?"<>|]', '', filename)
@@ -68,7 +69,7 @@ class GroovesharkClient(object):
                 self.getCommunicationToken()
 
             rand = random_hex()
-            nonce = ':'.join([method, self.token, self.revision_token, rand])
+            nonce = ':'.join([method, self.token, self.revision_token, rand]).encode('utf-8')
 
             header['token'] = rand + hashlib.sha1(nonce).hexdigest()
 
@@ -79,7 +80,7 @@ class GroovesharkClient(object):
         })).json()['result']
 
     def getCommunicationToken(self):
-        self.token = self.request('getCommunicationToken', secretKey=hashlib.md5(self.config['sessionID']).hexdigest())
+        self.token = self.request('getCommunicationToken', secretKey=hashlib.md5(self.config['sessionID'].encode('utf-8')).hexdigest())
         self.token_time = time.time()
 
     def search(self, query, songs=True, playlists=False, albums=False):
@@ -130,21 +131,21 @@ class GroovesharkClient(object):
 
         return 'http://' + info['ip'] + '/stream.php?streamKey=' + info['streamKey']
 
-    def downloadSongs(self, songs):
+    def downloadSongs(self, songs, folder):
         for song in songs:
             filename = windows_filename(song['AlbumName'] + ' - ' + song['SongName'] + '.mp3')
-            path = os.path.join(sys.argv[2], filename)
+            path = os.path.join(folder, filename)
 
             try:
-                os.makedirs(sys.argv[2])
+                os.makedirs(folder)
             except OSError:
                 pass
 
             if os.path.exists(path):
-                print 'Already downloaded', repr(filename)
+                print('Already downloaded', repr(filename))
                 continue
 
-            print 'Downloading', repr(filename)
+            print('Downloading', repr(filename))
 
             url = self.getStreamURL(song['SongID'])
 
@@ -162,4 +163,4 @@ if __name__ == '__main__':
     client = GroovesharkClient()
 
     songs = client.getFavorites(sys.argv[1])
-    client.downloadSongs(songs)
+    client.downloadSongs(songs, sys.argv[2])
