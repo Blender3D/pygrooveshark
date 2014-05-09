@@ -135,8 +135,13 @@ class GroovesharkClient(object):
             filename = windows_filename(song['AlbumName'] + ' - ' + song['SongName'] + '.mp3')
             path = os.path.join(sys.argv[2], filename)
 
+            try:
+                os.makedirs(sys.argv[2])
+            except OSError:
+                pass
+
             if os.path.exists(path):
-                print 'Skipping', repr(filename)
+                print 'Already downloaded', repr(filename)
                 continue
 
             print 'Downloading', repr(filename)
@@ -151,8 +156,6 @@ class GroovesharkClient(object):
                         break
 
                     handle.write(chunk)
-
-            print 'Downloaded', repr(filename)
 
 
 if __name__ == '__main__':
